@@ -102,11 +102,11 @@ df -h "$(dirname "${OUTDIR:-${VIRGO2_OUTDIR}}")"
 
 ### NFS / network filesystem issues
 
-Both pg-xujm reference databases and input data may be on NFS mounts. If tools hang or report I/O errors:
+Reference databases and input data may be on NFS mounts. If tools hang or report I/O errors:
 
 ```bash
 # Check mount status
-mount | grep -E '(pynas0|data10)'
+df -h "${KRAKEN2_DB}" "${INPUT_DIR}"
 ls "${KRAKEN2_DB}/hash.k2d"  # quick liveness check
 ```
 

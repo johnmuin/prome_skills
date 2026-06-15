@@ -122,6 +122,7 @@ for i in "${!STEP_NAMES[@]}"; do
         STEP_FAILED[$i]=0
         STEP_MISSING[$i]="${total}"
         STEP_ERROR_LOGS[$i]=0
+        STEP_EXPECTED[$i]=$([[ "${STEP_AGGREGATE[$i]}" -eq 1 ]] && echo 1 || echo "${total}")
         continue
     fi
 

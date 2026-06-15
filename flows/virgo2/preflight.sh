@@ -91,17 +91,26 @@ else
     fail "conda env not found: ${CONDA_BASE}/envs/${CONDA_ENV}"
 fi
 
-# ---- Check 3: Required binaries ---------------------------------------------
+# ---- Check 3: Required binaries (from configured conda env) ------------------
 echo ""
 echo "--- Required binaries"
 BIN_DIR="${CONDA_BASE}/envs/${CONDA_ENV}/bin"
+
+# Activate the configured env so PATH reflects it
+if [[ -f "${CONDA_BASE}/etc/profile.d/conda.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${CONDA_BASE}/etc/profile.d/conda.sh"
+    conda activate "${CONDA_ENV}" 2>/dev/null || true
+fi
+
 for tool in python3 python; do
-    if command -v "$tool" >/dev/null 2>&1; then
-        pass "$tool -> $(command -v "$tool")"
-    elif [[ -x "${BIN_DIR}/${tool}" ]]; then
+    # Prefer the binary from the configured env, not the current shell
+    if [[ -x "${BIN_DIR}/${tool}" ]]; then
         pass "$tool -> ${BIN_DIR}/${tool}"
+    elif command -v "$tool" >/dev/null 2>&1; then
+        warn "$tool not in ${BIN_DIR}, using $(command -v "$tool") — may not match CONDA_ENV=${CONDA_ENV}"
     else
-        fail "$tool not found on PATH or in ${BIN_DIR}"
+        fail "$tool not found in ${BIN_DIR} or on PATH"
     fi
 done
 
@@ -130,7 +139,13 @@ fi
 # ---- Check 5: Python dependencies -------------------------------------------
 echo ""
 echo "--- Python dependency check"
-PY=$(command -v python3 2>/dev/null || command -v python 2>/dev/null || echo "${BIN_DIR}/python3")
+if [[ -x "${BIN_DIR}/python3" ]]; then
+    PY="${BIN_DIR}/python3"
+elif [[ -x "${BIN_DIR}/python" ]]; then
+    PY="${BIN_DIR}/python"
+else
+    PY=$(command -v python3 2>/dev/null || command -v python 2>/dev/null || echo "")
+fi
 if [[ -x "${PY}" ]]; then
     # Quick import check for common VIRGO2 dependencies
     for mod in pandas numpy; do

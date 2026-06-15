@@ -7,16 +7,16 @@
 #-------------------------------------------------------------------------------
 # 软件路径配置（通常不需要修改）
 #-------------------------------------------------------------------------------
-export VIRGO2_DIR="/share/data7/opt/VIRGO2"
+export VIRGO2_DIR="/path/to/VIRGO2"
 export VIRGO2_SCRIPT="${VIRGO2_DIR}/VIRGO2.py"
 export CONDA_ENV="virgo2"
-export CONDA_BASE="/share/data7/apps/miniconda3"
+export CONDA_BASE="/path/to/miniconda3"
 
 #-------------------------------------------------------------------------------
 # 项目路径配置（根据实际项目修改）
 #-------------------------------------------------------------------------------
 # 项目根目录
-export PROJECT_DIR="/share/data10/Project/xujm/WGS_FLOW/vaginal_estrogen_therapy/proj_3rd"
+export PROJECT_DIR="/path/to/project"
 
 # 输入数据目录（质控/去宿主后的fastq）
 export INPUT_DIR="${PROJECT_DIR}/quality"

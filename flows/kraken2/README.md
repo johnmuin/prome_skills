@@ -24,7 +24,7 @@ kraken2_flow/
 ### 1. 复制配置并修改
 
 ```bash
-cd /Users/dreamingxu/apps/kraken2_flow
+cd /path/to/prome_skills/flows/kraken2
 cp config_template.sh config.sh
 vim config.sh   # 改 KRAKEN2_DB / PROJECT_DIR / INPUT_DIR 等
 ```

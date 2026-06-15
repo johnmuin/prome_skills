@@ -9,11 +9,12 @@
 # 软件路径（一般无需改）
 #-------------------------------------------------------------------------------
 # conda 根
-export CONDA_BASE="/home/liangbingbing/miniforge3"
+export CONDA_BASE="/path/to/miniconda3"
 # 含 kraken2 / bracken / seqkit / python3 的环境名
 export CONDA_ENV="kraken2.1.2"
 # KrakenTools 目录(含 kreport2mpa.py / combine_mpa.py)
-export KRAKEN_TOOLS_DIR="/Users/dreamingxu/apps/MAG_flow/utils/KrakenTools-master"
+# 来源: https://github.com/jenniferlu717/KrakenTools/
+export KRAKEN_TOOLS_DIR="/path/to/KrakenTools"
 # 本流程的 mpa2levels 独立脚本
 export MPA2LEVELS_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mpa2levels_standalone.py"
 
@@ -21,7 +22,7 @@ export MPA2LEVELS_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mpa2leve
 # 数据库（按 kraken2 库切换）
 #-------------------------------------------------------------------------------
 # 库根目录（含 hash.k2d / taxo.k2d / opts.k2d / database*mers.kmer_distrib）
-export KRAKEN2_DB="/BIODATA/Reference/GVMG/data/work/krakendb_202408"
+export KRAKEN2_DB="/path/to/kraken2_db"
 # Bracken 读长, 必须与库内 database*mers.kmer_distrib 一致
 #   例: 库里有 database100mers.kmer_distrib → BRACKEN_READ_LEN=100
 #       库里有 database150mers.kmer_distrib → BRACKEN_READ_LEN=150
@@ -30,13 +31,13 @@ export BRACKEN_READ_LEN="100"
 #-------------------------------------------------------------------------------
 # 项目路径（按当前项目修改）
 #-------------------------------------------------------------------------------
-export PROJECT_DIR="/BIODATA/Project/wanrenjixian_xiehe"
+export PROJECT_DIR="/path/to/project"
 
 # 去宿主后的 fastq 目录（含 *.rmhost_R1.fastq.gz / *.rmhost_R2.fastq.gz）
 export INPUT_DIR="${PROJECT_DIR}/quality"
 
 # 本流程的输出根目录
-export OUTDIR="${PROJECT_DIR}/kraken2_GVMG"
+export OUTDIR="${PROJECT_DIR}/kraken2_output"
 
 # 样品列表文件（可选, 留空则自动扫 INPUT_DIR）
 export SAMPLE_LIST=""

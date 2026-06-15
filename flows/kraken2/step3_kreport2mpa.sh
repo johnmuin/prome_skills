@@ -18,6 +18,12 @@ CONFIG_DIR="$(cd "$(dirname "${CONFIG_FILE}")" && pwd)"
 source "${CONFIG_FILE}"
 
 OUTDIR="$(resolve_path "${OUTDIR}")"
+if [[ -z "${KRAKEN_TOOLS_DIR:-}" ]]; then
+    echo "[FATAL] 未配置 KRAKEN_TOOLS_DIR" >&2
+    echo "        需要准备 KrakenTools: https://github.com/jenniferlu717/KrakenTools/" >&2
+    echo "        配置示例: export KRAKEN_TOOLS_DIR=\"/path/to/KrakenTools\"" >&2
+    exit 1
+fi
 KRAKEN_TOOLS_DIR="$(resolve_path "${KRAKEN_TOOLS_DIR}")"
 BR_DIR="${OUTDIR}/bracken"
 MPA_DIR="${OUTDIR}/mpa"
@@ -31,8 +37,16 @@ for tool in python python3; do
     fi
 done
 
+if [[ ! -d "${KRAKEN_TOOLS_DIR}" ]]; then
+    echo "[FATAL] KrakenTools 目录不存在: ${KRAKEN_TOOLS_DIR}" >&2
+    echo "        需要准备 KrakenTools: https://github.com/jenniferlu717/KrakenTools/" >&2
+    echo "        配置示例: export KRAKEN_TOOLS_DIR=\"/path/to/KrakenTools\"" >&2
+    exit 1
+fi
 if [[ ! -f "${KRAKEN_TOOLS_DIR}/kreport2mpa.py" ]]; then
     echo "[FATAL] 找不到 ${KRAKEN_TOOLS_DIR}/kreport2mpa.py" >&2
+    echo "        请确认 KRAKEN_TOOLS_DIR 指向 jenniferlu717/KrakenTools 目录" >&2
+    echo "        该目录应包含 kreport2mpa.py 和 combine_mpa.py" >&2
     exit 1
 fi
 PY=$(command -v python3 || command -v python)

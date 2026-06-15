@@ -65,47 +65,53 @@ count_log_errors() {
 }
 
 # ---- Step definitions -------------------------------------------------------
-# Each step: name, output_dir, completed_glob, key_output_desc
-declare -a STEP_NAMES STEP_DIRS STEP_GLOBS STEP_KEYS STEP_LOG_PATTERNS
+# Each step: name, output_dir, completed_glob, key_output_desc, aggregate (1=aggregate)
+declare -a STEP_NAMES STEP_DIRS STEP_GLOBS STEP_KEYS STEP_LOG_PATTERNS STEP_AGGREGATE
 
 STEP_NAMES[0]="step0_trim"
 STEP_DIRS[0]="${TRIM_DIR}"
 STEP_GLOBS[0]="*_R1.fastq.gz"
 STEP_KEYS[0]="${TRIM_DIR}"
 STEP_LOG_PATTERNS[0]="*.trim.log"
+STEP_AGGREGATE[0]=0
 
 STEP_NAMES[1]="step1_kraken2"
 STEP_DIRS[1]="${OUTDIR}/kraken2"
 STEP_GLOBS[1]="*.kreport2"
 STEP_KEYS[1]="${OUTDIR}/kraken2"
 STEP_LOG_PATTERNS[1]="*.kraken2.log"
+STEP_AGGREGATE[1]=0
 
 STEP_NAMES[2]="step2_bracken"
 STEP_DIRS[2]="${OUTDIR}/bracken"
 STEP_GLOBS[2]="*.bracken.kreport"
 STEP_KEYS[2]="${OUTDIR}/bracken"
 STEP_LOG_PATTERNS[2]="*.bracken.log"
+STEP_AGGREGATE[2]=0
 
 STEP_NAMES[3]="step3_kreport2mpa"
 STEP_DIRS[3]="${OUTDIR}/mpa"
 STEP_GLOBS[3]="*.mpa"
 STEP_KEYS[3]="${OUTDIR}/mpa"
 STEP_LOG_PATTERNS[3]="*.kreport2mpa.log"
+STEP_AGGREGATE[3]=0
 
 STEP_NAMES[4]="step4_mpa2levels"
 STEP_DIRS[4]="${OUTDIR}/profile"
 STEP_GLOBS[4]="*/L1.txt"
 STEP_KEYS[4]="${OUTDIR}/profile"
 STEP_LOG_PATTERNS[4]="*.mpa2levels.log"
+STEP_AGGREGATE[4]=0
 
 STEP_NAMES[5]="step5_combine"
 STEP_DIRS[5]="${OUTDIR}/combined/profile"
 STEP_GLOBS[5]="L1.txt"
 STEP_KEYS[5]="${OUTDIR}/combined/bracken.mpa + ${OUTDIR}/combined/profile/"
 STEP_LOG_PATTERNS[5]="combine_mpa.log"
+STEP_AGGREGATE[5]=1
 
 # ---- Compute status per step ------------------------------------------------
-declare -a STEP_COMPLETED STEP_FAILED STEP_MISSING STEP_ERROR_LOGS
+declare -a STEP_COMPLETED STEP_FAILED STEP_MISSING STEP_ERROR_LOGS STEP_EXPECTED
 
 for i in "${!STEP_NAMES[@]}"; do
     dir="${STEP_DIRS[$i]}"
@@ -122,8 +128,14 @@ for i in "${!STEP_NAMES[@]}"; do
     completed=$(count_completed "${dir}" "${glob}")
     STEP_COMPLETED[$i]="${completed}"
 
-    missing=$(( total - completed ))
+    if [[ "${STEP_AGGREGATE[$i]}" -eq 1 ]]; then
+        expected=1
+    else
+        expected="${total}"
+    fi
+    missing=$(( expected - completed ))
     STEP_MISSING[$i]="${missing}"
+    STEP_EXPECTED[$i]="${expected}"
 
     # Check log errors for this step
     err_count=$(count_log_errors "${STEP_LOG_PATTERNS[$i]}")
@@ -155,7 +167,9 @@ if [[ "${OUTPUT_MODE}" == "json" ]]; then
         cat <<EOF
     {
       "step": "${STEP_NAMES[$i]}",
+      "aggregate": ${STEP_AGGREGATE[$i]},
       "completed": ${STEP_COMPLETED[$i]},
+      "expected": ${STEP_EXPECTED[$i]},
       "missing": ${STEP_MISSING[$i]},
       "error_logs": ${STEP_ERROR_LOGS[$i]},
       "output_dir": "${STEP_DIRS[$i]}",
@@ -184,7 +198,8 @@ else
         missing="${STEP_MISSING[$i]}"
         errors="${STEP_ERROR_LOGS[$i]}"
 
-        if [[ "${completed}" -ge "${total}" && "${total}" -gt 0 ]]; then
+        expected="${STEP_EXPECTED[$i]}"
+        if [[ "${completed}" -ge "${expected}" && "${expected}" -gt 0 ]]; then
             status="DONE"
         elif [[ "${completed}" -gt 0 ]]; then
             status="PARTIAL"
@@ -193,7 +208,7 @@ else
         fi
 
         printf "%-22s %12s %12s %12s %12s\n" \
-            "${STEP_NAMES[$i]}" "${completed}/${total}" "${missing}" "${errors}" "${status}"
+            "${STEP_NAMES[$i]}" "${completed}/${expected}" "${missing}" "${errors}" "${status}"
     done
 
     echo ""
@@ -214,14 +229,13 @@ else
         echo "Run: grep -liE '(error|fatal|exception)' ${OUTDIR}/logs/*.log"
     fi
 
-    # Show sample-level detail for partial steps
+    # Show sample-level detail for per-sample steps (skip aggregate step 5)
     echo ""
     echo "Per-sample detail:"
     echo "  (use --json for machine-readable per-sample status)"
     echo "  Sample list:"
     for sample in ${samples}; do
         markers=""
-        # Check each step
         if [[ -s "${TRIM_DIR}/${sample}.trim${TRIM_LEN:-0}_R1.fastq.gz" ]]; then
             markers="${markers}0"
         else
@@ -251,6 +265,12 @@ else
         else
             markers="${markers}-"
         fi
-        echo "  ${sample}  [${markers}]  (steps: 0=trim 1=kraken2 2=bracken 3=mpa 4=levels)"
+        markers="${markers} "
+        if [[ -s "${OUTDIR}/combined/bracken.mpa" ]]; then
+            markers="${markers}5"
+        else
+            markers="${markers}-"
+        fi
+        echo "  ${sample}  [${markers}]  (steps: 0=trim 1=kraken2 2=bracken 3=mpa 4=levels 5=combine)"
     done
 fi

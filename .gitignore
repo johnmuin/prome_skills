@@ -6,5 +6,5 @@ tmp/
 .DS_Store
 __pycache__/
 *.pyc
-env_profiles/*.sh
-!env_profiles/template.sh
+runtime/environments/profiles/*.sh
+!runtime/environments/profiles/template.sh

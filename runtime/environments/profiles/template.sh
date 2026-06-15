@@ -3,10 +3,10 @@
 # Environment Profile Template
 # Copy this file and fill in server-specific paths for your cluster/server.
 #
-# Usage: source env_profiles/<your-server>.sh
+# Usage: source runtime/environments/profiles/<your-server>.sh
 #
-# The project config (config.sh) should source an env profile first so that
-# reference paths and tool versions stay centralized.
+# Project configs source this profile to locate tools, references, and execution
+# backends. Environment specs live in runtime/environments/<flow>/environment.yml.
 #===============================================================================
 
 # ---- Conda ----------------------------------------------------------------
@@ -21,6 +21,9 @@ export DEFAULT_MEM="64G"
 
 # ---- Kraken2 --------------------------------------------------------------
 # Conda environment containing kraken2, bracken, seqkit, python
+# NOTE: exported as CONDA_ENV_KRAKEN2 (flow-specific name).
+# The flow config bridges it: CONDA_ENV="${CONDA_ENV_KRAKEN2:-kraken2.1.2}"
+# This avoids collisions when both Kraken2 and VIRGO2 profiles are sourced.
 export CONDA_ENV_KRAKEN2="kraken2.1.2"
 
 # Kraken2 database directory (must contain hash.k2d, taxo.k2d, opts.k2d,

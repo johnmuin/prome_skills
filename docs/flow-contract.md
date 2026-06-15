@@ -51,7 +51,7 @@ bash step2_example.sh config.sh
 An LLM skill should:
 
 1. Identify the target flow and project inputs.
-2. Select or create the appropriate environment profile from `env_profiles/`.
+2. Select or create the appropriate environment profile from `runtime/environments/profiles/`.
 3. Create a project config from `config_template.sh`.
 4. Run `preflight.sh` before heavy computation. Never skip this step — fix all [FAIL] items first.
 5. Run `run_all.sh` or selected `step*.sh` commands.

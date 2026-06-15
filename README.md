@@ -60,6 +60,6 @@ The most important additions planned for every flow are:
 
 - `preflight.sh` for environment, reference, input, and permission checks
 - `status.sh` for resumable step status summaries
-- `env_profiles/` for server-specific conda and reference paths
+- `runtime/environments/profiles/` for server-specific conda and reference paths
 - stable log and output conventions
 

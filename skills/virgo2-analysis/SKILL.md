@@ -19,10 +19,20 @@ which conda || ls /path/to/miniconda3/etc/profile.d/conda.sh
 
 ### 2. Create the conda environment
 
-VIRGO2 requires Python 3 with `pandas` and `numpy`:
+Use the committed environment spec:
 
 ```bash
+conda env create -f runtime/environments/virgo2/environment.yml
+```
+
+Or manually:
+```bash
 conda create -n virgo2 python=3 pandas numpy
+```
+
+After creation, verify the environment:
+```bash
+bash runtime/environments/checks/check_virgo2_env.sh runtime/environments/profiles/<server>.sh
 ```
 
 ### 3. Install VIRGO2
@@ -39,7 +49,7 @@ The installation must contain:
 ### 4. Create an environment profile
 
 ```bash
-cp env_profiles/template.sh env_profiles/<server-name>.sh
+cp runtime/environments/profiles/template.sh runtime/environments/profiles/<server-name>.sh
 ```
 
 Fill in `CONDA_BASE`, `CONDA_ENV_VIRGO2`, and `VIRGO2_DIR` with paths from steps 1-3.
@@ -58,7 +68,7 @@ Fix every [FAIL] before proceeding.
 ## Workflow
 
 1. Locate the flow under `flows/virgo2`.
-2. Select an environment profile from `env_profiles/` or create one (see Bootstrap above).
+2. Select an environment profile from `runtime/environments/profiles/` or create one (see Bootstrap above).
 3. Create or update a project config from `config_template.sh`.
 4. Run `bash preflight.sh config.sh` to validate the environment.
 5. Run steps in order:

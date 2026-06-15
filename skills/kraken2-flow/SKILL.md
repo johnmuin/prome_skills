@@ -21,6 +21,13 @@ If conda is not installed, install Miniconda3 first.
 
 ### 2. Create the conda environment
 
+Use the committed environment spec:
+
+```bash
+conda env create -f runtime/environments/kraken2/environment.yml
+```
+
+Or manually:
 ```bash
 conda create -n kraken2.1.2 -c bioconda kraken2=2.1.2 bracken=2.7 seqkit python=3
 ```
@@ -28,6 +35,11 @@ conda create -n kraken2.1.2 -c bioconda kraken2=2.1.2 bracken=2.7 seqkit python=
 If the server has no network access, clone from an existing env on a reachable server:
 ```bash
 conda create -n kraken2.1.2 --clone /path/to/existing/env
+```
+
+After creation, verify the environment:
+```bash
+bash runtime/environments/checks/check_kraken2_env.sh runtime/environments/profiles/<server>.sh
 ```
 
 ### 3. Obtain or locate the Kraken2 database
@@ -75,7 +87,7 @@ Must contain `kreport2mpa.py` and `combine_mpa.py`.
 ### 6. Create an environment profile
 
 ```bash
-cp env_profiles/template.sh env_profiles/<server-name>.sh
+cp runtime/environments/profiles/template.sh runtime/environments/profiles/<server-name>.sh
 ```
 
 Fill in the absolute paths discovered in steps 1-4. This profile is shared across all projects on this server.
@@ -94,7 +106,7 @@ After receiving answers:
 cd flows/kraken2
 cp config_template.sh config.sh
 # Edit config.sh: set PROJECT_DIR, INPUT_DIR, OUTDIR, KRAKEN2_DB, BRACKEN_READ_LEN,
-# and source the appropriate env_profiles/<server>.sh
+# and source the appropriate runtime/environments/profiles/<server>.sh
 bash preflight.sh config.sh
 ```
 
@@ -103,7 +115,7 @@ Fix every [FAIL] before proceeding. Run preflight repeatedly until clean — thi
 ## Workflow
 
 1. Locate the flow under `flows/kraken2`.
-2. Select an environment profile from `env_profiles/` or create one (see Bootstrap above).
+2. Select an environment profile from `runtime/environments/profiles/` or create one (see Bootstrap above).
 3. Create or update a project config from `config_template.sh`.
 4. Run `bash preflight.sh config.sh` to validate the environment.
 5. Run the complete workflow with `bash run_all.sh config.sh`, or individual steps if resuming.

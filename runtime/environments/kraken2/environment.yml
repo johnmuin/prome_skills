@@ -1,0 +1,10 @@
+name: kraken2.1.2
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - kraken2=2.1.2
+  - bracken=2.7
+  - seqkit
+  - python=3

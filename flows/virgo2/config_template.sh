@@ -2,15 +2,22 @@
 #===============================================================================
 # VIRGO2 Pipeline - Configuration File
 # 请将此文件复制为 config.sh 并根据项目修改
+#
+# 运行时环境由 runtime/environments/profiles/<server>.sh 提供。
+# 创建 config.sh 时，先 source 你的服务器 profile：
+#   source runtime/environments/profiles/<your-server>.sh
 #===============================================================================
 
 #-------------------------------------------------------------------------------
-# 软件路径配置（通常不需要修改）
+# 软件路径配置（通常不需要修改 —— 由 runtime profile 提供，此处为默认值）
+# 若已 source runtime/environments/profiles/<server>.sh，这些变量已设置，
+# 这里的默认值仅作为 fallback。
 #-------------------------------------------------------------------------------
-export VIRGO2_DIR="/path/to/VIRGO2"
+export VIRGO2_DIR="${VIRGO2_DIR:-/path/to/VIRGO2}"
 export VIRGO2_SCRIPT="${VIRGO2_DIR}/VIRGO2.py"
-export CONDA_ENV="virgo2"
-export CONDA_BASE="/path/to/miniconda3"
+# profile 导出 CONDA_ENV_VIRGO2，config 桥接到通用的 CONDA_ENV
+export CONDA_ENV="${CONDA_ENV_VIRGO2:-virgo2}"
+export CONDA_BASE="${CONDA_BASE:-/path/to/miniconda3}"
 
 #-------------------------------------------------------------------------------
 # 项目路径配置（根据实际项目修改）

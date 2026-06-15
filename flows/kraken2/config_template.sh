@@ -3,18 +3,25 @@
 # Kraken2 通用分析流程 - 配置文件模板
 # 请将此文件复制为 config.sh 并按项目修改
 # 用法:  bash step*.sh config.sh
+#
+# 运行时环境由 runtime/environments/profiles/<server>.sh 提供。
+# 创建 config.sh 时，先 source 你的服务器 profile：
+#   source runtime/environments/profiles/<your-server>.sh
 #===============================================================================
 
 #-------------------------------------------------------------------------------
-# 软件路径（一般无需改）
+# 软件路径（一般无需改 —— 由 runtime profile 提供，此处为默认值）
+# 若已 source runtime/environments/profiles/<server>.sh，这些变量已设置，
+# 这里的默认值仅作为 fallback。
 #-------------------------------------------------------------------------------
 # conda 根
-export CONDA_BASE="/path/to/miniconda3"
+export CONDA_BASE="${CONDA_BASE:-/path/to/miniconda3}"
 # 含 kraken2 / bracken / seqkit / python3 的环境名
-export CONDA_ENV="kraken2.1.2"
+# profile 导出 CONDA_ENV_KRAKEN2，config 桥接到通用的 CONDA_ENV
+export CONDA_ENV="${CONDA_ENV_KRAKEN2:-kraken2.1.2}"
 # KrakenTools 目录(含 kreport2mpa.py / combine_mpa.py)
 # 来源: https://github.com/jenniferlu717/KrakenTools/
-export KRAKEN_TOOLS_DIR="/path/to/KrakenTools"
+export KRAKEN_TOOLS_DIR="${KRAKEN_TOOLS_DIR:-/path/to/KrakenTools}"
 # 本流程的 mpa2levels 独立脚本
 export MPA2LEVELS_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mpa2levels_standalone.py"
 
@@ -22,11 +29,11 @@ export MPA2LEVELS_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mpa2leve
 # 数据库（按 kraken2 库切换）
 #-------------------------------------------------------------------------------
 # 库根目录（含 hash.k2d / taxo.k2d / opts.k2d / database*mers.kmer_distrib）
-export KRAKEN2_DB="/path/to/kraken2_db"
+export KRAKEN2_DB="${KRAKEN2_DB:-/path/to/kraken2_db}"
 # Bracken 读长, 必须与库内 database*mers.kmer_distrib 一致
 #   例: 库里有 database100mers.kmer_distrib → BRACKEN_READ_LEN=100
 #       库里有 database150mers.kmer_distrib → BRACKEN_READ_LEN=150
-export BRACKEN_READ_LEN="100"
+export BRACKEN_READ_LEN="${BRACKEN_READ_LEN:-100}"
 
 #-------------------------------------------------------------------------------
 # 项目路径（按当前项目修改）
@@ -53,7 +60,7 @@ export THREADS=16
 #                  当 reads 已经是目标长度时使用 (读长 == BRACKEN_READ_LEN)
 #   TRIM_LEN=100   截到 100bp (适合 database100mers 的库)
 #   TRIM_LEN=150   截到 150bp (适合 database150mers 的库)
-export TRIM_LEN=100
+export TRIM_LEN="${TRIM_LEN:-100}"
 # 截断区域 (seqkit --region 语法)
 export TRIM_REGION="1:${TRIM_LEN}"
 

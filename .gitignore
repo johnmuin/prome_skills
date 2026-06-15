@@ -1,0 +1,8 @@
+config.sh
+project_config.sh
+*.log
+logs/
+tmp/
+.DS_Store
+__pycache__/
+*.pyc

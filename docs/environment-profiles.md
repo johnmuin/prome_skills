@@ -20,6 +20,16 @@ export KRAKEN_TOOLS_DIR="/path/to/KrakenTools"
 export VIRGO2_DIR="/path/to/VIRGO2"
 ```
 
+Reference-specific tool constraints also belong in the profile when needed:
+
+```bash
+export CONDA_ENV="kraken2.1.2"
+export BRACKEN_READ_LEN="100"
+export TRIM_LEN="100"
+```
+
+Before running a Kraken2 profile, confirm the database contains `hash.k2d`, `taxo.k2d`, `opts.k2d`, and a matching `database${BRACKEN_READ_LEN}mers.kmer_distrib`. `KRAKEN_TOOLS_DIR` should point to a `jenniferlu717/KrakenTools` checkout with `kreport2mpa.py` and `combine_mpa.py`.
+
 Project configs should then focus on the project:
 
 ```bash

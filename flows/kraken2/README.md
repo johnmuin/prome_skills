@@ -107,6 +107,22 @@ mamba create -n kraken2.1.2 -c bioconda -c conda-forge \
     kraken2 bracken seqkit python
 ```
 
+## 参考库依赖检查
+
+运行前需要确认参考库与运行环境匹配:
+
+```bash
+ls "${KRAKEN2_DB}"/hash.k2d \
+   "${KRAKEN2_DB}"/taxo.k2d \
+   "${KRAKEN2_DB}"/opts.k2d
+ls "${KRAKEN2_DB}"/database*mers.kmer_distrib
+```
+
+- `BRACKEN_READ_LEN` 必须与库内 `database*mers.kmer_distrib` 对齐, 例如 `database100mers.kmer_distrib` 对应 `BRACKEN_READ_LEN=100`。
+- `TRIM_LEN` 通常应与 `BRACKEN_READ_LEN` 一致; 只有明确不截断时才设为 `0`。
+- 某些参考库依赖特定 Kraken2/Bracken 版本, 应在项目配置或环境 profile 里固定版本。
+- `KRAKEN_TOOLS_DIR` 需要指向 `jenniferlu717/KrakenTools` 本地目录, 且包含 `kreport2mpa.py` 和 `combine_mpa.py`。
+
 ## 输出结构
 
 ```

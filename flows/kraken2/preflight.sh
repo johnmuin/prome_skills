@@ -173,9 +173,10 @@ fi
 # ---- Check 5b: Validate TRIM_LEN matches BRACKEN_READ_LEN -----------------------
 echo ""
 echo "--- TRIM_LEN vs BRACKEN_READ_LEN"
-if [[ "${TRIM_LEN:-0}" -eq "${BRACKEN_READ_LEN}" ]]; then
+# Use string comparison to avoid arithmetic crash on non-numeric config values
+if [[ "${TRIM_LEN:-0}" == "${BRACKEN_READ_LEN}" ]]; then
     pass "TRIM_LEN=${TRIM_LEN} matches BRACKEN_READ_LEN=${BRACKEN_READ_LEN}"
-elif [[ "${TRIM_LEN:-0}" -eq 0 ]]; then
+elif [[ "${TRIM_LEN:-0}" == "0" ]]; then
     warn "TRIM_LEN=0 (trimming skipped), but BRACKEN_READ_LEN=${BRACKEN_READ_LEN} — reads must already be the correct length"
 else
     fail "TRIM_LEN=${TRIM_LEN} differs from BRACKEN_READ_LEN=${BRACKEN_READ_LEN} — reads will be trimmed to wrong length for Bracken"

@@ -7,10 +7,58 @@ description: Use the PROME lightweight VIRGO2 flow for vaginal microbiome gene m
 
 Use this skill when the user wants to run or adapt the PROME VIRGO2 analysis flow.
 
+## Bootstrap on a New Server
+
+When deploying to a server that has never run this flow, work through these steps before creating a project config. Use preflight repeatedly — fix each [FAIL], re-run, repeat until clean.
+
+### 1. Check conda availability
+
+```bash
+which conda || ls /path/to/miniconda3/etc/profile.d/conda.sh
+```
+
+### 2. Create the conda environment
+
+VIRGO2 requires Python 3 with `pandas` and `numpy`:
+
+```bash
+conda create -n virgo2 python=3 pandas numpy
+```
+
+### 3. Install VIRGO2
+
+```bash
+# Clone or copy VIRGO2 to the server
+git clone https://github.com/IGS/VIRGO2.git /path/to/VIRGO2
+```
+
+The installation must contain:
+- `VIRGO2.py` (main script)
+- `AccessoryScripts/merge_annotations.py` (needed for step5_annotate)
+
+### 4. Create an environment profile
+
+```bash
+cp env_profiles/template.sh env_profiles/<server-name>.sh
+```
+
+Fill in `CONDA_BASE`, `CONDA_ENV_VIRGO2`, and `VIRGO2_DIR` with paths from steps 1-3.
+
+### 5. Run preflight to validate
+
+```bash
+cd flows/virgo2
+cp config_template.sh config.sh
+# Edit config.sh: set PROJECT_DIR, INPUT_DIR, VIRGO2_OUTDIR, and source the env profile
+bash preflight.sh config.sh
+```
+
+Fix every [FAIL] before proceeding.
+
 ## Workflow
 
 1. Locate the flow under `flows/virgo2`.
-2. Select an environment profile from `env_profiles/` or create one.
+2. Select an environment profile from `env_profiles/` or create one (see Bootstrap above).
 3. Create or update a project config from `config_template.sh`.
 4. Run `bash preflight.sh config.sh` to validate the environment.
 5. Run steps in order:

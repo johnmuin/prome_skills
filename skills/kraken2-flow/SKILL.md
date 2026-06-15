@@ -7,10 +7,69 @@ description: Use the PROME lightweight Kraken2 flow for paired metagenomic reads
 
 Use this skill when the user wants to run or adapt the PROME Kraken2 classification flow.
 
+## Bootstrap on a New Server
+
+When deploying to a server that has never run this flow before, work through these steps before creating a project config. Use preflight repeatedly — fix each [FAIL], re-run, repeat until clean.
+
+### 1. Check conda availability
+
+```bash
+which conda || ls /path/to/miniconda3/etc/profile.d/conda.sh
+```
+
+If conda is not installed, install Miniconda3 first.
+
+### 2. Create the conda environment
+
+```bash
+conda create -n kraken2.1.2 -c bioconda kraken2=2.1.2 bracken=2.7 seqkit python=3
+```
+
+If the server has no network access, clone from an existing env on a reachable server:
+```bash
+conda create -n kraken2.1.2 --clone /path/to/existing/env
+```
+
+### 3. Obtain or locate the Kraken2 database
+
+The database must contain `hash.k2d`, `taxo.k2d`, `opts.k2d`, and `database*<N>mers.kmer_distrib`. Either:
+- Point to an existing DB on a shared filesystem
+- Download from a Kraken2 DB source (e.g. `kraken2-build --standard --db $DB_PATH`)
+- Copy from another server
+
+Run preflight to verify: `bash preflight.sh config.sh` will check every required file.
+
+### 4. Clone KrakenTools
+
+```bash
+git clone https://github.com/jenniferlu717/KrakenTools.git /path/to/KrakenTools
+```
+
+Must contain `kreport2mpa.py` and `combine_mpa.py`.
+
+### 5. Create an environment profile
+
+```bash
+cp env_profiles/template.sh env_profiles/<server-name>.sh
+```
+
+Fill in the absolute paths discovered in steps 1-4. This profile is shared across all projects on this server.
+
+### 6. Run preflight to validate
+
+```bash
+cd flows/kraken2
+cp config_template.sh config.sh
+# Edit config.sh: set PROJECT_DIR, INPUT_DIR, OUTDIR, and source the env profile
+bash preflight.sh config.sh
+```
+
+Fix every [FAIL] before proceeding. [WARN] items are advisory but should be reviewed.
+
 ## Workflow
 
 1. Locate the flow under `flows/kraken2`.
-2. Select an environment profile from `env_profiles/` or create one.
+2. Select an environment profile from `env_profiles/` or create one (see Bootstrap above).
 3. Create or update a project config from `config_template.sh`.
 4. Run `bash preflight.sh config.sh` to validate the environment.
 5. Run the complete workflow with `bash run_all.sh config.sh`, or individual steps if resuming.

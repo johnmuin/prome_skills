@@ -39,7 +39,19 @@ The database must contain `hash.k2d`, `taxo.k2d`, `opts.k2d`, and `database*<N>m
 
 Run preflight to verify: `bash preflight.sh config.sh` will check every required file.
 
-### 4. Clone KrakenTools
+### 4. Choose the correct read length
+
+**Do this before running step0 (trim) — picking the wrong length will break Bracken.**
+
+```bash
+ls "${KRAKEN2_DB}"/database*mers.kmer_distrib
+# Example output:
+#   database100mers.kmer_distrib  database150mers.kmer_distrib  database250mers.kmer_distrib
+```
+
+Set `BRACKEN_READ_LEN` to match one of these (e.g., 150 for `database150mers.kmer_distrib`). Set `TRIM_LEN` to the same value.
+
+### 5. Clone KrakenTools
 
 ```bash
 git clone https://github.com/jenniferlu717/KrakenTools.git /path/to/KrakenTools
@@ -47,7 +59,7 @@ git clone https://github.com/jenniferlu717/KrakenTools.git /path/to/KrakenTools
 
 Must contain `kreport2mpa.py` and `combine_mpa.py`.
 
-### 5. Create an environment profile
+### 6. Create an environment profile
 
 ```bash
 cp env_profiles/template.sh env_profiles/<server-name>.sh
@@ -55,7 +67,7 @@ cp env_profiles/template.sh env_profiles/<server-name>.sh
 
 Fill in the absolute paths discovered in steps 1-4. This profile is shared across all projects on this server.
 
-### 6. Run preflight to validate
+### 7. Run preflight to validate
 
 ```bash
 cd flows/kraken2

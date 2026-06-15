@@ -126,26 +126,59 @@ else
     done
 fi
 
-# ---- Check 5: Bracken kmer distribution -------------------------------------
+# ---- Check 5: Bracken kmer distribution FIRST (must pass before step0) ---------
 echo ""
-echo "--- Bracken kmer distribution (BRACKEN_READ_LEN=${BRACKEN_READ_LEN})"
+echo "--- Bracken DB: available read lengths"
 shopt -s nullglob
 kmers=( "${KRAKEN2_DB}"/database*mers.kmer_distrib )
 shopt -u nullglob
+
+# Extract available read lengths from filenames
+declare -a AVAILABLE_LENS
 if [[ ${#kmers[@]} -eq 0 ]]; then
     fail "No database*mers.kmer_distrib found in KRAKEN2_DB"
 else
     pass "Found ${#kmers[@]} kmer distribution file(s):"
     for k in "${kmers[@]}"; do
-        echo "         $(basename "$k")"
+        base=$(basename "$k")
+        len=$(echo "$base" | sed -E 's/database([0-9]+)mers.kmer_distrib/\1/')
+        AVAILABLE_LENS+=("$len")
+        echo "         ${base}  ->  BRACKEN_READ_LEN=${len}"
     done
-    expected="database${BRACKEN_READ_LEN}mers.kmer_distrib"
-    if [[ -f "${KRAKEN2_DB}/${expected}" ]]; then
-        pass "BRACKEN_READ_LEN=${BRACKEN_READ_LEN} matches ${expected}"
+fi
+
+# Validate BRACKEN_READ_LEN against available
+echo ""
+echo "--- BRACKEN_READ_LEN check"
+if [[ ${#AVAILABLE_LENS[@]} -eq 0 ]]; then
+    fail "Cannot validate BRACKEN_READ_LEN — no kmer files found"
+else
+    matched=false
+    for len in "${AVAILABLE_LENS[@]}"; do
+        if [[ "${BRACKEN_READ_LEN}" == "${len}" ]]; then
+            matched=true
+            break
+        fi
+    done
+    if [[ "${matched}" == "true" ]]; then
+        pass "BRACKEN_READ_LEN=${BRACKEN_READ_LEN} matches database${BRACKEN_READ_LEN}mers.kmer_distrib"
     else
-        fail "BRACKEN_READ_LEN=${BRACKEN_READ_LEN} but ${expected} not found"
-        echo "         Available: $(ls "${KRAKEN2_DB}"/database*mers.kmer_distrib 2>/dev/null | xargs -n1 basename | tr '\n' ' ')"
+        avail_str=$(IFS=,; echo "${AVAILABLE_LENS[*]}")
+        fail "BRACKEN_READ_LEN=${BRACKEN_READ_LEN} not found in database"
+        echo "         Available: ${avail_str}"
+        echo "         Fix: set BRACKEN_READ_LEN to one of [${avail_str}] in your config"
     fi
+fi
+
+# ---- Check 5b: Validate TRIM_LEN matches BRACKEN_READ_LEN -----------------------
+echo ""
+echo "--- TRIM_LEN vs BRACKEN_READ_LEN"
+if [[ "${TRIM_LEN:-0}" -eq "${BRACKEN_READ_LEN}" ]]; then
+    pass "TRIM_LEN=${TRIM_LEN} matches BRACKEN_READ_LEN=${BRACKEN_READ_LEN}"
+elif [[ "${TRIM_LEN:-0}" -eq 0 ]]; then
+    warn "TRIM_LEN=0 (trimming skipped), but BRACKEN_READ_LEN=${BRACKEN_READ_LEN} — reads must already be the correct length"
+else
+    fail "TRIM_LEN=${TRIM_LEN} differs from BRACKEN_READ_LEN=${BRACKEN_READ_LEN} — reads will be trimmed to wrong length for Bracken"
 fi
 
 # ---- Check 6: KrakenTools ---------------------------------------------------
@@ -202,18 +235,7 @@ else
     fail "Output parent not writable: ${out_parent}"
 fi
 
-# ---- Check 10: TRIM_LEN vs BRACKEN_READ_LEN ---------------------------------
-echo ""
-echo "--- Parameter consistency"
-if [[ "${TRIM_LEN:-0}" -eq "${BRACKEN_READ_LEN}" ]]; then
-    pass "TRIM_LEN=${TRIM_LEN} matches BRACKEN_READ_LEN=${BRACKEN_READ_LEN}"
-elif [[ "${TRIM_LEN:-0}" -eq 0 ]]; then
-    warn "TRIM_LEN=0 (trimming skipped), but BRACKEN_READ_LEN=${BRACKEN_READ_LEN} — reads must already match"
-else
-    warn "TRIM_LEN=${TRIM_LEN} differs from BRACKEN_READ_LEN=${BRACKEN_READ_LEN}"
-fi
-
-# ---- Check 11: Resource sanity ----------------------------------------------
+# ---- Check 10: Resource sanity ----------------------------------------------
 echo ""
 echo "--- Resource sanity"
 avail_cores=$(getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 0)
@@ -228,7 +250,7 @@ else
     warn "Could not detect available cores; THREADS=${THREADS} MAX_PARALLEL=${MAX_PARALLEL}"
 fi
 
-# ---- Check 12: Preview first 3 sample pairs ---------------------------------
+# ---- Check 11: Preview first 3 sample pairs ---------------------------------
 echo ""
 echo "--- Sample file preview (first 3)"
 count=0

@@ -177,7 +177,7 @@ echo "--- TRIM_LEN vs BRACKEN_READ_LEN"
 if [[ "${TRIM_LEN:-0}" == "${BRACKEN_READ_LEN}" ]]; then
     pass "TRIM_LEN=${TRIM_LEN} matches BRACKEN_READ_LEN=${BRACKEN_READ_LEN}"
 elif [[ "${TRIM_LEN:-0}" == "0" ]]; then
-    warn "TRIM_LEN=0 (trimming skipped), but BRACKEN_READ_LEN=${BRACKEN_READ_LEN} — reads must already be the correct length"
+    warn "TRIM_LEN=0 — step0 will be skipped; step1 reads directly from INPUT_DIR. Ensure reads are already ${BRACKEN_READ_LEN}bp."
 else
     fail "TRIM_LEN=${TRIM_LEN} differs from BRACKEN_READ_LEN=${BRACKEN_READ_LEN} — reads will be trimmed to wrong length for Bracken"
 fi

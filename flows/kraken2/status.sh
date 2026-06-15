@@ -31,8 +31,10 @@ source "${CONFIG_FILE}"
 OUTDIR="$(resolve_path "${OUTDIR}")"
 if [[ "${TRIM_LEN:-0}" -gt 0 ]]; then
     TRIM_DIR="${OUTDIR}/trim${TRIM_LEN}"
+    SKIP_STEP0=false
 else
     TRIM_DIR="${OUTDIR}/trim0"
+    SKIP_STEP0=true
 fi
 
 samples=$(get_samples)
@@ -117,6 +119,16 @@ for i in "${!STEP_NAMES[@]}"; do
     dir="${STEP_DIRS[$i]}"
     glob="${STEP_GLOBS[$i]}"
 
+    # Step0 is intentionally skipped when TRIM_LEN=0
+    if [[ "${STEP_AGGREGATE[$i]}" -eq 0 && "${i}" -eq 0 && "${SKIP_STEP0}" == "true" ]]; then
+        STEP_COMPLETED[$i]="skip"
+        STEP_FAILED[$i]=0
+        STEP_ERROR_LOGS[$i]=0
+        STEP_EXPECTED[$i]="skip"
+        STEP_MISSING[$i]=0
+        continue
+    fi
+
     if [[ ! -d "${dir}" ]]; then
         STEP_COMPLETED[$i]=0
         STEP_FAILED[$i]=0
@@ -165,12 +177,21 @@ if [[ "${OUTPUT_MODE}" == "json" ]]; then
     echo "  \"steps\": ["
     for i in "${!STEP_NAMES[@]}"; do
         [[ $i -gt 0 ]] && echo ","
+        skipped=false
+        completed="${STEP_COMPLETED[$i]}"
+        expected="${STEP_EXPECTED[$i]}"
+        if [[ "${completed}" == "skip" ]]; then
+            skipped=true
+            completed=0
+            expected=0
+        fi
         cat <<EOF
     {
       "step": "${STEP_NAMES[$i]}",
       "aggregate": ${STEP_AGGREGATE[$i]},
-      "completed": ${STEP_COMPLETED[$i]},
-      "expected": ${STEP_EXPECTED[$i]},
+      "skipped": ${skipped},
+      "completed": ${completed},
+      "expected": ${expected},
       "missing": ${STEP_MISSING[$i]},
       "error_logs": ${STEP_ERROR_LOGS[$i]},
       "output_dir": "${STEP_DIRS[$i]}",
@@ -198,9 +219,13 @@ else
         completed="${STEP_COMPLETED[$i]}"
         missing="${STEP_MISSING[$i]}"
         errors="${STEP_ERROR_LOGS[$i]}"
-
         expected="${STEP_EXPECTED[$i]}"
-        if [[ "${completed}" -ge "${expected}" && "${expected}" -gt 0 ]]; then
+
+        if [[ "${completed}" == "skip" ]]; then
+            status="SKIPPED (TRIM_LEN=0)"
+            completed="0"
+            expected="0"
+        elif [[ "${completed}" -ge "${expected}" && "${expected}" -gt 0 ]]; then
             status="DONE"
         elif [[ "${completed}" -gt 0 ]]; then
             status="PARTIAL"
@@ -208,8 +233,13 @@ else
             status="PENDING"
         fi
 
-        printf "%-22s %12s %12s %12s %12s\n" \
-            "${STEP_NAMES[$i]}" "${completed}/${expected}" "${missing}" "${errors}" "${status}"
+        if [[ "${STEP_COMPLETED[$i]}" == "skip" ]]; then
+            printf "%-22s %12s %12s %12s %12s\n" \
+                "${STEP_NAMES[$i]}" "-" "${missing}" "${errors}" "${status}"
+        else
+            printf "%-22s %12s %12s %12s %12s\n" \
+                "${STEP_NAMES[$i]}" "${completed}/${expected}" "${missing}" "${errors}" "${status}"
+        fi
     done
 
     echo ""
@@ -237,7 +267,9 @@ else
     echo "  Sample list:"
     for sample in ${samples}; do
         markers=""
-        if [[ -s "${TRIM_DIR}/${sample}.trim${TRIM_LEN:-0}_R1.fastq.gz" ]]; then
+        if [[ "${SKIP_STEP0}" == "true" ]]; then
+            markers="${markers}s"  # intentionally skipped
+        elif [[ -s "${TRIM_DIR}/${sample}.trim${TRIM_LEN:-0}_R1.fastq.gz" ]]; then
             markers="${markers}0"
         else
             markers="${markers}-"
@@ -272,6 +304,6 @@ else
         else
             markers="${markers}-"
         fi
-        echo "  ${sample}  [${markers}]  (steps: 0=trim 1=kraken2 2=bracken 3=mpa 4=levels 5=combine)"
+        echo "  ${sample}  [${markers}]  (steps: s=skip-trim 0=trim 1=kraken2 2=bracken 3=mpa 4=levels 5=combine)"
     done
 fi

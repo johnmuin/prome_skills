@@ -24,10 +24,12 @@ INPUT_DIR="$(resolve_path "${INPUT_DIR}")"
 OUTDIR="$(resolve_path "${OUTDIR}")"
 KRAKEN2_DB="$(resolve_path "${KRAKEN2_DB}")"
 
-if [[ "${TRIM_LEN}" -gt 0 ]]; then
+if [[ "${TRIM_LEN:-0}" -gt 0 ]]; then
     TRIM_DIR="${OUTDIR}/trim${TRIM_LEN}"
+    USE_TRIM_DIR=true
 else
-    TRIM_DIR="${OUTDIR}/trim0"
+    TRIM_DIR="${INPUT_DIR}"
+    USE_TRIM_DIR=false
 fi
 K2_DIR="${OUTDIR}/kraken2"
 LOG_DIR="${OUTDIR}/logs"
@@ -66,8 +68,13 @@ echo ""
 
 run_one() {
     local sample="$1"
-    local t1="${TRIM_DIR}/${sample}.trim${TRIM_LEN:-0}_R1.fastq.gz"
-    local t2="${TRIM_DIR}/${sample}.trim${TRIM_LEN:-0}_R2.fastq.gz"
+    if [[ "${USE_TRIM_DIR}" == "true" ]]; then
+        local t1="${TRIM_DIR}/${sample}.trim${TRIM_LEN}_R1.fastq.gz"
+        local t2="${TRIM_DIR}/${sample}.trim${TRIM_LEN}_R2.fastq.gz"
+    else
+        local t1="${TRIM_DIR}/${sample}.rmhost_R1.fastq.gz"
+        local t2="${TRIM_DIR}/${sample}.rmhost_R2.fastq.gz"
+    fi
     local out="${K2_DIR}/${sample}.kraken2"
     local rep="${K2_DIR}/${sample}.kreport2"
     local log="${LOG_DIR}/${sample}.kraken2.log"
@@ -109,7 +116,7 @@ run_one() {
 export -f run_one
 export INPUT_DIR OUTDIR KRAKEN2_DB TRIM_DIR K2_DIR LOG_DIR \
        THREADS_PER_JOB KRAKEN2_CONFIDENCE KRAKEN2_USE_NAMES KRAKEN2_USE_MM \
-       TRIM_LEN
+       TRIM_LEN USE_TRIM_DIR
 
 running_pids=()
 running_samples=()

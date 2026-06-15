@@ -37,6 +37,16 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Source config to inspect TRIM_LEN for step0 skip decision
+CONFIG_DIR="$(cd "$(dirname "${CONFIG_FILE}")" && pwd)"
+# shellcheck disable=SC1090
+source "${CONFIG_FILE}"
+
+SKIP_STEP0=false
+if [[ "${TRIM_LEN:-0}" == "0" ]]; then
+    SKIP_STEP0=true
+fi
+
 echo "########################################"
 echo "# Kraken2 全流程"
 echo "# 配置: ${CONFIG_FILE}"
@@ -46,8 +56,14 @@ echo "########################################"
 
 declare -a STEP_NAMES STEP_SCRIPTS STEP_EXIT_CODES
 
-STEP_NAMES[0]="step0_trim"
-STEP_SCRIPTS[0]="step0_trim.sh"
+if [[ "${SKIP_STEP0}" == "true" ]]; then
+    echo ""
+    echo ">>> step0_trim -- 跳过 (TRIM_LEN=0, 不需要截断)"
+    STEP_EXIT_CODES[0]=0
+else
+    STEP_NAMES[0]="step0_trim"
+    STEP_SCRIPTS[0]="step0_trim.sh"
+fi
 
 STEP_NAMES[1]="step1_kraken2"
 STEP_SCRIPTS[1]="step1_kraken2.sh"

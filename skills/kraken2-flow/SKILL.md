@@ -121,7 +121,7 @@ Before running a Kraken2 flow, verify or prepare the reference-specific runtime:
 
 - `KRAKEN2_DB` points to a Kraken2 database directory containing `hash.k2d`, `taxo.k2d`, `opts.k2d`, and at least one `database*mers.kmer_distrib` file for Bracken.
 - `BRACKEN_READ_LEN` matches the database kmer distribution file, such as `BRACKEN_READ_LEN=100` for `database100mers.kmer_distrib`.
-- `TRIM_LEN` should normally match `BRACKEN_READ_LEN` when reads are longer than the Bracken read length; set `TRIM_LEN=0` only when skipping trimming is intentional.
+- `TRIM_LEN` should normally match `BRACKEN_READ_LEN` when reads are longer than the Bracken read length; set `TRIM_LEN=0` only when reads are already the correct length. When `TRIM_LEN=0`, step0 is automatically skipped and step1 reads directly from `INPUT_DIR`.
 - The conda environment contains compatible `kraken2`, `bracken`, `seqkit`, and `python`.
 - `KRAKEN_TOOLS_DIR` points to a local checkout of `jenniferlu717/KrakenTools` and contains `kreport2mpa.py` and `combine_mpa.py`.
 

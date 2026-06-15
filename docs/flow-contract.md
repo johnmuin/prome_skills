@@ -35,6 +35,9 @@ cp config_template.sh config.sh
 vim config.sh
 bash preflight.sh config.sh
 bash run_all.sh config.sh
+bash run_all.sh config.sh --continue-on-error   # run all steps, collect errors
+bash status.sh config.sh                        # human-readable progress
+bash status.sh config.sh --json                 # machine-readable progress
 ```
 
 Every step should also work independently:
@@ -48,11 +51,17 @@ bash step2_example.sh config.sh
 An LLM skill should:
 
 1. Identify the target flow and project inputs.
-2. Select or create the appropriate environment profile.
+2. Select or create the appropriate environment profile from `env_profiles/`.
 3. Create a project config from `config_template.sh`.
-4. Run `preflight.sh` before heavy computation.
+4. Run `preflight.sh` before heavy computation. Never skip this step — fix all [FAIL] items first.
 5. Run `run_all.sh` or selected `step*.sh` commands.
 6. Use `status.sh` and logs to summarize progress or diagnose failures.
+7. Consult `docs/troubleshooting.md` for common failure patterns and diagnostic commands.
+
+When resuming after a failure:
+- Run `status.sh --json` to get machine-readable progress.
+- Re-run only the failed step(s); existing outputs are skipped automatically.
+- Use `--continue-on-error` on `run_all.sh` to collect all errors in one pass when debugging.
 
 ## Step Behavior
 

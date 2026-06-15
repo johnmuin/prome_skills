@@ -80,16 +80,25 @@ cp env_profiles/template.sh env_profiles/<server-name>.sh
 
 Fill in the absolute paths discovered in steps 1-4. This profile is shared across all projects on this server.
 
-### 7. Run preflight to validate
+### 7. Create project config and run preflight
+
+**Before creating the config, ask the user for these paths** (you cannot guess them):
+
+1. **Input directory** — where the post-host-removal `*.rmhost_R{1,2}.fastq.gz` files are (e.g., `/share/data/project/quality`)
+2. **Output directory** — where Kraken2 results should be written
+3. **Environment profile** — which server profile to use, or whether to create a new one (see step 6)
+
+After receiving answers:
 
 ```bash
 cd flows/kraken2
 cp config_template.sh config.sh
-# Edit config.sh: set PROJECT_DIR, INPUT_DIR, OUTDIR, and source the env profile
+# Edit config.sh: set PROJECT_DIR, INPUT_DIR, OUTDIR, KRAKEN2_DB, BRACKEN_READ_LEN,
+# and source the appropriate env_profiles/<server>.sh
 bash preflight.sh config.sh
 ```
 
-Fix every [FAIL] before proceeding. [WARN] items are advisory but should be reviewed.
+Fix every [FAIL] before proceeding. Run preflight repeatedly until clean — this is the gate before any compute.
 
 ## Workflow
 

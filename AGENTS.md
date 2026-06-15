@@ -14,6 +14,8 @@
    - if test feedback shows issues, return to local development and iterate;
    - repeat until production-grade tests pass.
 5. Repository scripts, templates, and committed documentation should stay portable and avoid server-specific names, private absolute paths, or local-only operational details. Keep those details in local memory, local runtime config files, or ignored project notes instead.
+6. When developing bioinformatics workflows, define standardized data interfaces before implementation. This includes input file naming, sample identity rules, required paired files, reference database requirements, read length assumptions, output directory layout, and key output file contracts.
+7. Standardized data interfaces should have an explicit pre-run confirmation step. For interactive work, ask the user to confirm paths and interface assumptions before heavy compute; for scripts, encode the same checks in `preflight.sh` with clear [PASS]/[WARN]/[FAIL] messages.
 
 ## Reference-Specific Runtime Notes
 

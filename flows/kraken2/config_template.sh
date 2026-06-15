@@ -50,6 +50,7 @@ export THREADS=16
 
 # Step 0 截断设置
 #   TRIM_LEN=0     跳过截断, 直接把 INPUT_DIR 软链到 trim 目录
+#                  当 reads 已经是目标长度时使用 (读长 == BRACKEN_READ_LEN)
 #   TRIM_LEN=100   截到 100bp (适合 database100mers 的库)
 #   TRIM_LEN=150   截到 150bp (适合 database150mers 的库)
 export TRIM_LEN=100

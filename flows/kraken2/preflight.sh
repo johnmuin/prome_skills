@@ -182,6 +182,53 @@ else
     fail "TRIM_LEN=${TRIM_LEN} differs from BRACKEN_READ_LEN=${BRACKEN_READ_LEN} — reads will be trimmed to wrong length for Bracken"
 fi
 
+# ---- Check 5c: Measure actual FASTQ read length ---------------------------------
+echo ""
+echo "--- Actual read length vs TRIM_LEN"
+first_r1=$(ls "${INPUT_DIR}"/*.rmhost_R1.fastq.gz 2>/dev/null | head -1)
+if [[ -z "${first_r1}" || ! -f "${first_r1}" ]]; then
+    warn "No FASTQ files found to measure read length; cannot validate TRIM_LEN against actual reads"
+else
+    # Sample first 4 reads and compute average length
+    read_lens=$(zcat "${first_r1}" 2>/dev/null | head -16 | awk 'NR%4==2{print length($0)}')
+    if [[ -z "${read_lens}" ]]; then
+        warn "Could not extract reads from $(basename "${first_r1}")"
+    else
+        total_len=0
+        count=0
+        for l in ${read_lens}; do
+            total_len=$((total_len + l))
+            count=$((count + 1))
+        done
+        actual_len=$((total_len / count))
+        sample_name=$(basename "${first_r1}" | sed 's/.rmhost_R1.fastq.gz//')
+        echo "  Sampled ${count} reads from ${sample_name}"
+        echo "  Actual read length: ${actual_len}bp  (BRACKEN_READ_LEN=${BRACKEN_READ_LEN})"
+        echo ""
+
+        # Guard: skip arithmetic comparisons when BRACKEN_READ_LEN is non-numeric
+        if [[ ! "${BRACKEN_READ_LEN}" =~ ^[0-9]+$ ]]; then
+            fail "BRACKEN_READ_LEN='${BRACKEN_READ_LEN}' is not numeric — fix it before read-length validation can proceed"
+        elif [[ "${actual_len}" -eq "${BRACKEN_READ_LEN}" ]]; then
+            if [[ "${TRIM_LEN:-0}" == "0" ]]; then
+                pass "Reads already ${actual_len}bp and TRIM_LEN=0 — step0 will be skipped"
+            else
+                fail "Reads are already ${actual_len}bp! Set TRIM_LEN=0 to skip unnecessary trimming. Current TRIM_LEN=${TRIM_LEN}."
+            fi
+        elif [[ "${actual_len}" -gt "${BRACKEN_READ_LEN}" ]]; then
+            if [[ "${TRIM_LEN:-0}" == "${BRACKEN_READ_LEN}" ]]; then
+                pass "Reads (${actual_len}bp) will be trimmed to ${BRACKEN_READ_LEN}bp for Bracken"
+            elif [[ "${TRIM_LEN:-0}" == "0" ]]; then
+                fail "Reads are ${actual_len}bp but TRIM_LEN=0 — must trim to ${BRACKEN_READ_LEN}bp. Set TRIM_LEN=${BRACKEN_READ_LEN}."
+            else
+                fail "TRIM_LEN=${TRIM_LEN} doesn't match BRACKEN_READ_LEN=${BRACKEN_READ_LEN}. Reads are ${actual_len}bp."
+            fi
+        else
+            fail "Reads (${actual_len}bp) are SHORTER than BRACKEN_READ_LEN (${BRACKEN_READ_LEN}bp) — cannot use this database"
+        fi
+    fi
+fi
+
 # ---- Check 6: KrakenTools ---------------------------------------------------
 echo ""
 echo "--- KrakenTools: ${KRAKEN_TOOLS_DIR}"

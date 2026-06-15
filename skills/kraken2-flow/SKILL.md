@@ -49,7 +49,20 @@ ls "${KRAKEN2_DB}"/database*mers.kmer_distrib
 #   database100mers.kmer_distrib  database150mers.kmer_distrib  database250mers.kmer_distrib
 ```
 
-Set `BRACKEN_READ_LEN` to match one of these (e.g., 150 for `database150mers.kmer_distrib`). Set `TRIM_LEN` to the same value.
+Set `BRACKEN_READ_LEN` to match one of these (e.g., 150 for `database150mers.kmer_distrib`).
+
+**Then measure actual read length** to decide `TRIM_LEN`:
+
+```bash
+# Check actual read length of a sample FASTQ (NR%4==2 = sequence line)
+zcat "${INPUT_DIR}"/*.rmhost_R1.fastq.gz | head -4 | awk 'NR%4==2{print length($0); exit}'
+```
+
+- If actual length **equals** `BRACKEN_READ_LEN` → set `TRIM_LEN=0` (no trimming needed, step0 auto-skipped)
+- If actual length **is longer than** `BRACKEN_READ_LEN` → set `TRIM_LEN=${BRACKEN_READ_LEN}` (trim to match)
+- If actual length **is shorter than** `BRACKEN_READ_LEN` → this database is incompatible, pick a shorter read-length DB
+
+The preflight check "Actual read length vs TRIM_LEN" will catch mistakes here before any compute runs.
 
 ### 5. Clone KrakenTools
 
